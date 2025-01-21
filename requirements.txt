@@ -1,0 +1,10 @@
+flask
+Tensorflow
+Joblib
+Numpy
+Pandas
+Flask
+Scikit-learn
+Keras
+# schedule
+# gunicorn
