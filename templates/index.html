@@ -311,50 +311,45 @@
       let isLoading = false;
 
       async function handleFormSubmit(event, tabId) {
-          event.preventDefault();
-          if (isLoading) {
+        event.preventDefault();
+        if (isLoading) {
+          return;
+        }
+
+        isLoading = true;
+
+        const form = document.getElementById(tabId);
+        const loading = document.getElementById(`${tabId}-loading`);
+        const success = document.getElementById(`${tabId}-success`);
+
+        loading.style.display = "block";
+        success.style.display = "none";
+
+        const formData = new FormData(form);
+
+        try {
+          const res = await fetch("/predict", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            console.log(`HTTP error! Status: ${res.status}`);
             return;
           }
-        
-          isLoading = true;
-        
-          const form = document.getElementById(tabId);
-          const loading = document.getElementById(`${tabId}-loading`);
-          const success = document.getElementById(`${tabId}-success`);
-        
-          loading.style.display = "block";
-          success.style.display = "none";
-        
-          const formData = new FormData(form);
-          console.log("data:",formData);
-            try {
-            const res = await fetch("/predict", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: formData,
-            });
-            console.log("response: ",res);
-              
-            if (!res.ok) {
-              console.log(`HTTP error! Status: ${res.status}`);
-              return;
-            }
-        
-            const data = await res.json();
-            console.log(data);
-        
-            success.style.display = "block";
-            success.innerHTML = `Next day predicted NLDC demand is ${data.prediction}`;
-          } catch (error) {
-            console.error("Error:", error);
-          } finally {
-            loading.style.display = "none";
-            isLoading = false;
-          }
-      }
 
+          const data = await res.json();
+          console.log(data);
+
+          success.style.display = "block";
+          success.innerHTML = `Next day predicted nldc demand is ${data.prediction}`;
+        } catch (error) {
+          console.error("Error:", error);
+        } finally {
+          loading.style.display = "none";
+          isLoading = false;
+        }
+      }
     </script>
   </body>
 </html>
