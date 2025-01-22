@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 from DB import DB
 from model import predict_day, predict_hour
-# from auto_input import start_auto_input
+from auto_input import start_auto_input
 
 app = Flask(__name__)
 
@@ -92,7 +92,7 @@ def format_datetime(value, format="%d %b (%I%p)"):
 app.jinja_env.filters['strftime'] = format_datetime
 
 
-# start_auto_input()
+start_auto_input()
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port="3000")
