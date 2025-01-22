@@ -36,8 +36,9 @@ def insert_data():
         device_id = request.form.get('device_id')
 
         if not humidity or not temperature or not device_id:
-            return jsonify({"error": "table_name and data are required"}), 400
+            return jsonify({"error": "All fields are required"}), 400
 
+        # Insert data into the database
         inserted_id = DB.insert_data('readings', {
             'temperature': temperature,
             'humidity': humidity,
@@ -45,10 +46,15 @@ def insert_data():
         })
 
         if inserted_id:
-            return jsonify({"message": "Data inserted successfully", "id": inserted_id}), 201
+            return jsonify({
+                "message": "Data inserted successfully",
+                "id": inserted_id
+            }), 201
         else:
             return jsonify({"error": "Failed to insert data"}), 500
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
         return jsonify({"error": str(e)}), 500
 
     
