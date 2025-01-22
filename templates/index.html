@@ -311,45 +311,53 @@
       let isLoading = false;
 
       async function handleFormSubmit(event, tabId) {
-        event.preventDefault();
-        if (isLoading) {
-          return;
-        }
-
-        isLoading = true;
-
-        const form = document.getElementById(tabId);
-        const loading = document.getElementById(`${tabId}-loading`);
-        const success = document.getElementById(`${tabId}-success`);
-
-        loading.style.display = "block";
-        success.style.display = "none";
-
-        const formData = new FormData(form);
-        console.log("formdata is: ",formData);
-        try {
-          const res = await fetch("/predict", {
-            method: "POST",
-            body: JSON.stringify(formData),
-          });
-          console.log("response from predict: ",res);
-          if (!res.ok) {
-            console.log(`HTTP error! Status: ${res.status}`);
+          event.preventDefault();
+          if (isLoading) {
             return;
           }
-
-          const data = await res.json();
-          console.log(data);
-
-          success.style.display = "block";
-          success.innerHTML = `Next day predicted nldc demand is ${data.prediction}`;
-        } catch (error) {
-          console.error("Error:", error);
-        } finally {
-          loading.style.display = "none";
-          isLoading = false;
-        }
+        
+          isLoading = true;
+        
+          const form = document.getElementById(tabId);
+          const loading = document.getElementById(`${tabId}-loading`);
+          const success = document.getElementById(`${tabId}-success`);
+        
+          loading.style.display = "block";
+          success.style.display = "none";
+        
+          const formData = new FormData(form);
+          const plainObject = {};
+          formData.forEach((value, key) => {
+            plainObject[key] = value;
+          });
+        
+          try {
+            const res = await fetch("/predict", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(plainObject),
+            });
+        
+            if (!res.ok) {
+              console.log(`HTTP error! Status: ${res.status}`);
+              return;
+            }
+        
+            const data = await res.json();
+            console.log(data);
+        
+            success.style.display = "block";
+            success.innerHTML = `Next day predicted NLDC demand is ${data.prediction}`;
+          } catch (error) {
+            console.error("Error:", error);
+          } finally {
+            loading.style.display = "none";
+            isLoading = false;
+          }
       }
+
     </script>
   </body>
 </html>
