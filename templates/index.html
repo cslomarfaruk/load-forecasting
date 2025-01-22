@@ -330,7 +330,8 @@
           formData.forEach((value, key) => {
             plainObject[key] = value;
           });
-        
+          console.log("form: ",form);
+          console.log("plainObject: ",palinObject);
           try {
             const res = await fetch("/predict", {
               method: "POST",
@@ -339,7 +340,7 @@
               },
               body: JSON.stringify(plainObject),
             });
-        
+            console.log("response: ",res);
             if (!res.ok) {
               console.log(`HTTP error! Status: ${res.status}`);
               return;
