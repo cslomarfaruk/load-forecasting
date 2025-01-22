@@ -2,6 +2,7 @@ import sqlite3
 from sqlite3 import Error
 import threading
 from datetime import datetime
+import os
 
 class DB:
     _thread_local = threading.local()
@@ -9,7 +10,8 @@ class DB:
     @staticmethod
     def get_connection():
         if not hasattr(DB._thread_local, "connection"):
-            DB._thread_local.connection = sqlite3.connect('database.db')
+            DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
+            DB._thread_local.connection = sqlite3.connect(DB_PATH)
         return DB._thread_local.connection
     
     @staticmethod
