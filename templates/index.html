@@ -331,14 +331,14 @@
             plainObject[key] = value;
           });
           console.log("form: ",form);
-          console.log("plainObject: ",palinObject);
+          // console.log("plainObject: ",palinObject);
           try {
             const res = await fetch("/predict", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(plainObject),
+              body: formData,
             });
             console.log("response: ",res);
             if (!res.ok) {
