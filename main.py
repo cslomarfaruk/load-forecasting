@@ -72,36 +72,47 @@ def insert_data():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    hour = request.form.get('hour')
-    day = request.form.get('day')
-    month = request.form.get('month')
-    year = request.form.get('year')
-    nldc_demand = request.form.get('demand')
-    temparature = request.form.get('temperature')
-    humidity = request.form.get('humidity')
-
-    logging.debug(f"Predict request: hour={hour}, day={day}, month={month}, year={year}, demand={nldc_demand}, temperature={temparature}, humidity={humidity}")
-
     try:
+        hour = request.form.get('hour')
+        day = request.form.get('day')
+        month = request.form.get('month')
+        year = request.form.get('year')
+        nldc_demand = request.form.get('demand')
+        temperature = request.form.get('temperature')
+        humidity = request.form.get('humidity')
+
+        if not all([nldc_demand, temperature, humidity, day, month, year]):
+            return jsonify({"error": "Missing required input data"}), 400
+
+        nldc_demand = float(nldc_demand)
+        temperature = float(temperature)
+        humidity = float(humidity)
+        day = int(day)
+        month = int(month)
+        year = int(year)
+
         if hour:
-            user_input = [nldc_demand, temparature, humidity, hour, day, month, year]
-            logging.debug(f"User input for hourly prediction: {user_input}")
+            hour = int(hour)
+            user_input = [nldc_demand, temperature, humidity, hour, day, month, year]
             prediction = predict_hour(user_input)
         else:
-            user_input = [nldc_demand, temparature, humidity, day, month, year]
-            logging.debug(f"User input for daily prediction: {user_input}")
+            user_input = [nldc_demand, temperature, humidity, day, month, year]
             prediction = predict_day(user_input)
-        
-        logging.debug(f"Prediction result: {prediction}")
 
         DB.insert_data('predictions', {
             'type': 'hourly' if hour else 'daily',
             'prediction': prediction,
         })
-        return jsonify({"prediction": prediction, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200
+
+        return jsonify({
+            "prediction": prediction,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": f"Invalid input data: {str(e)}"}), 400
     except Exception as e:
-        logging.error(f"Error during prediction: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Error during prediction: {str(e)}"}), 500
+
 
 def format_datetime(value, format="%d %b (%I%p)"):
     if not isinstance(value, datetime):
