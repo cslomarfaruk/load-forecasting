@@ -326,13 +326,13 @@
         success.style.display = "none";
 
         const formData = new FormData(form);
-
+        console.log("formdata is: ",formData);
         try {
           const res = await fetch("/predict", {
             method: "POST",
-            body: formData,
+            body: JSON.stringify(formData),
           });
-
+          console.log("response from predict: ",res);
           if (!res.ok) {
             console.log(`HTTP error! Status: ${res.status}`);
             return;
