@@ -3,8 +3,12 @@ from datetime import datetime
 from DB import DB
 from model import predict_day, predict_hour
 from auto_input import start_auto_input
+import logging
 
 app = Flask(__name__)
+
+# Setup logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Initialize the database connection
 DB.init()
@@ -13,8 +17,14 @@ DB.init()
 def home():
     # Get the current date and time
     now = datetime.now()
+    logging.debug(f"Current datetime: {now}")
+    
     data = DB.get_data()
-    last_p =DB.get_closest_predictions()
+    logging.debug(f"Data from DB.get_data(): {data}")
+    
+    last_p = DB.get_closest_predictions()
+    logging.debug(f"Closest predictions from DB.get_closest_predictions(): {last_p}")
+    
     return render_template(
         "index.html",
         year=now.year,
@@ -24,8 +34,8 @@ def home():
         humidity=data['humidity'],
         temperature=data['temperature'],
         history=DB.get_predictions(),
-        last_hour = last_p['hourly'],
-        last_day = last_p['daily'],
+        last_hour=last_p['hourly'],
+        last_day=last_p['daily'],
     )
 
 @app.route('/insert', methods=['POST'])
@@ -34,6 +44,8 @@ def insert_data():
         humidity = request.form.get('humidity')
         temperature = request.form.get('temperature')
         device_id = request.form.get('device_id')
+
+        logging.debug(f"Insert data request: humidity={humidity}, temperature={temperature}, device_id={device_id}")
 
         if not humidity or not temperature or not device_id:
             return jsonify({"error": "All fields are required"}), 400
@@ -45,6 +57,8 @@ def insert_data():
             'device_id': device_id
         })
 
+        logging.debug(f"Inserted ID: {inserted_id}")
+
         if inserted_id:
             return jsonify({
                 "message": "Data inserted successfully",
@@ -53,11 +67,9 @@ def insert_data():
         else:
             return jsonify({"error": "Failed to insert data"}), 500
     except Exception as e:
+        logging.error(f"Error inserting data: {e}")
         return jsonify({"error": str(e)}), 500
 
-        return jsonify({"error": str(e)}), 500
-
-    
 @app.route('/predict', methods=['POST'])
 def predict():
     hour = request.form.get('hour')
@@ -68,29 +80,35 @@ def predict():
     temparature = request.form.get('temperature')
     humidity = request.form.get('humidity')
 
+    logging.debug(f"Predict request: hour={hour}, day={day}, month={month}, year={year}, demand={nldc_demand}, temperature={temparature}, humidity={humidity}")
+
     try:
         if hour:
             user_input = [nldc_demand, temparature, humidity, hour, day, month, year]
+            logging.debug(f"User input for hourly prediction: {user_input}")
             prediction = predict_hour(user_input)
         else:
             user_input = [nldc_demand, temparature, humidity, day, month, year]
+            logging.debug(f"User input for daily prediction: {user_input}")
             prediction = predict_day(user_input)
         
+        logging.debug(f"Prediction result: {prediction}")
+
         DB.insert_data('predictions', {
             'type': 'hourly' if hour else 'daily',
             'prediction': prediction,
         })
         return jsonify({"prediction": prediction, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200
     except Exception as e:
+        logging.error(f"Error during prediction: {e}")
         return jsonify({"error": str(e)}), 500
-    
+
 def format_datetime(value, format="%d %b (%I%p)"):
     if not isinstance(value, datetime):
         value = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
     return value.strftime(format)
 
 app.jinja_env.filters['strftime'] = format_datetime
-
 
 start_auto_input()
 
