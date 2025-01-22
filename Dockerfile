@@ -6,9 +6,6 @@ WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 3000
-CMD ["python", "main.py"]
-
-FROM python:3.10-slim-bullseye
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# CMD ["python", "main.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:3000", "main:app"]
 ENV FLASK_APP=main.py 
